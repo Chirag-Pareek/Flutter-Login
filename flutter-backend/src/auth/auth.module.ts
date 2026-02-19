@@ -9,20 +9,28 @@ import { JwtAuthGuard } from './jwt.guard';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SignOptions } from 'jsonwebtoken';
 
+// Auth module: registration, login, JWT validation, and guard exports.
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    // Make JWT the default passport strategy for guarded routes.
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        // Access token config with fallback values for local development.
+        const secret =
+          configService.get<string>('JWT_ACCESS_SECRET') ??
+          configService.get<string>('JWT_SECRET') ??
+          'supersecret';
         const expiresIn =
-          configService.get<SignOptions['expiresIn']>('JWT_EXPIRES_IN') ?? '1d';
+          configService.get<SignOptions['expiresIn']>('JWT_ACCESS_EXPIRES') ??
+          '15m';
 
         return {
-          secret: configService.get<string>('JWT_SECRET', 'supersecret'),
+          secret,
           signOptions: { expiresIn },
         };
       },

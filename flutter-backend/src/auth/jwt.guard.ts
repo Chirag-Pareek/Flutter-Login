@@ -11,6 +11,7 @@ import { Request } from 'express';
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
 
+  // Adds request-level diagnostics before passport JWT validation runs.
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers.authorization;
@@ -27,6 +28,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
+  // Standardizes authentication failure logging and error messages.
   handleRequest<TUser = unknown>(
     err: unknown,
     user: TUser,
@@ -38,7 +40,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         info?.message ??
         'Unauthorized';
       this.logger.warn(`JWT authentication failed: ${reason}`);
-      throw err ?? new UnauthorizedException(reason);
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new UnauthorizedException(reason);
     }
 
     this.logger.debug('JWT authentication passed');

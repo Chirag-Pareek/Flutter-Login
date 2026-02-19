@@ -3,22 +3,35 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  // ✅ GET ALL USERS
+  /**
+   * Returns all users with a safe public response shape.
+   * Update `select` to expose more or fewer user fields.
+   */
   async getUsers() {
-    const users = await this.prisma.user.findMany();
-    return users.map(({ password, ...user }) => user);
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
   }
 
-  // ✅ GET SINGLE USER
+  /**
+   * Returns a single user by numeric `id`.
+   * Update `where` to query by another unique field (for example, `email`).
+   * Update `select` to control fields returned to callers.
+   */
   async getUserById(id: number) {
-    const users = await this.prisma.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
     });
-    if (!users) return null;
-
-    const { password, ...result } = users;
-    return result;
   }
 }

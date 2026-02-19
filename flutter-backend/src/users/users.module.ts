@@ -4,6 +4,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { AuthModule } from '../auth/auth.module';
 
+// Users feature module with protected user listing/detail endpoints.
 @Module({
   imports: [PrismaModule, AuthModule],
   controllers: [UsersController],

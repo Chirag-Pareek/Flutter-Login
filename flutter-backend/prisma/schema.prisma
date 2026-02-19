@@ -1,22 +1,20 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// Prisma client generation target used by the NestJS app.
 generator client {
   provider = "prisma-client-js"
 }
 
+// PostgreSQL datasource configured via environment variable.
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// Core application user entity for authentication and authorization.
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
- 
+  id           Int     @id @default(autoincrement())
+  name         String
+  email        String  @unique
+  password     String
+  refreshToken String?
+  role         String  @default("user")
 }

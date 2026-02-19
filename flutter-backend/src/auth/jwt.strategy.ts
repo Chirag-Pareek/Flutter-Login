@@ -19,8 +19,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly prisma: PrismaService,
     configService: ConfigService,
   ) {
-    const jwtSecret = configService.get<string>('JWT_SECRET', 'supersecret');
+    const jwtSecret =
+      configService.get<string>('JWT_ACCESS_SECRET') ??
+      configService.get<string>('JWT_SECRET') ??
+      'supersecret';
 
+    // Strategy reads bearer token and verifies it with configured access secret.
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -29,6 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // Resolves token payload into an application user object attached to request.
   async validate(req: Request, payload: JwtPayload) {
     const authHeader = req.headers.authorization ?? '';
     this.logger.debug(
@@ -38,11 +43,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, role: true },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Token is valid but user no longer exists');
+      throw new UnauthorizedException(
+        'Token is valid but user no longer exists',
+      );
     }
 
     this.logger.debug(`JWT validation passed for userId=${user.id}`);
