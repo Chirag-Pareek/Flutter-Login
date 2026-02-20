@@ -16,11 +16,15 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
+  // Ensure resources are closed between tests to avoid open handles.
+  afterEach(async () => {
+    await app.close();
+  });
+
   // Verifies the root route responds successfully.
   it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+    const httpServer = app.getHttpServer() as Parameters<typeof request>[0];
+
+    return request(httpServer).get('/').expect(200).expect('Hello World!');
   });
 });

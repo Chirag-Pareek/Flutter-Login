@@ -9,12 +9,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AuthProvider {
+  email
+  google
+}
+
 // Core application user entity for authentication and authorization.
 model User {
   id           Int     @id @default(autoincrement())
   name         String
   email        String  @unique
-  password     String
+  password     String?               //optional (for Google users)
   refreshToken String?
   role         String  @default("user")
+
+  isVerified    Boolean  @default(false)   
+  verifyToken   String?
+  verifyTokenExpiry DateTime?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+
+  provider    AuthProvider @default(email)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+
+  @@index([verifyToken])
+  @@index([resetToken])
+  @@index([role])
 }

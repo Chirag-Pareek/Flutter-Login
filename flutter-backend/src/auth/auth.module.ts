@@ -8,6 +8,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtAuthGuard } from './jwt.guard';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SignOptions } from 'jsonwebtoken';
+import { RolesGuard } from './roles.guard';
+import { GoogleStrategy } from './google.strategy';
 
 // Auth module: registration, login, JWT validation, and guard exports.
 @Module({
@@ -20,11 +22,13 @@ import { SignOptions } from 'jsonwebtoken';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        // Access token config with fallback values for local development.
-        const secret =
-          configService.get<string>('JWT_ACCESS_SECRET') ??
-          configService.get<string>('JWT_SECRET') ??
-          'supersecret';
+        // Fail fast when security-critical config is not provided.
+        const secret = configService.get<string>('JWT_ACCESS_SECRET');
+
+        if (!secret) {
+          throw new Error('JWT_ACCESS_SECRET is required');
+        }
+
         const expiresIn =
           configService.get<SignOptions['expiresIn']>('JWT_ACCESS_EXPIRES') ??
           '15m';
@@ -37,7 +41,13 @@ import { SignOptions } from 'jsonwebtoken';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard],
-  exports: [JwtModule, PassportModule, JwtAuthGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtAuthGuard,
+    RolesGuard,
+    GoogleStrategy,
+  ],
+  exports: [JwtModule, PassportModule, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}

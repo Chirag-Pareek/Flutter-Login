@@ -1,11 +1,16 @@
+import { Transform } from 'class-transformer';
 import { IsEmail, MinLength } from 'class-validator';
 
 // Payload used by `POST /auth/login`.
 export class LoginDto {
+  // Normalize email to avoid case-sensitive credential mismatches.
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   @IsEmail()
   email!: string;
 
-  // Minimum 6 chars for basic password policy.
-  @MinLength(6)
+  // Align login validation with register validation.
+  @MinLength(8)
   password!: string;
 }
