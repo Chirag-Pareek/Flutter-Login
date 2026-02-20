@@ -25,6 +25,9 @@ async function bootstrap() {
       disableErrorMessages: process.env.NODE_ENV === 'production',
     }),
   );
+  app.enableCors({
+    origin: '*',
+  });
   await app.listen(process.env.PORT || 3000);
 }
 
