@@ -22,8 +22,4 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   },
-  "scripts": {
-    "build": "nest build",
-    "start:prod": "node dist/main.js"
-}
 }
