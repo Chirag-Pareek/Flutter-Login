@@ -195,7 +195,7 @@ export class AuthService {
     const passwordHash = user?.password ?? DUMMY_PASSWORD_HASH;
     const isPasswordValid = await bcrypt.compare(dto.password, passwordHash);
 
-    if (!user || !isPasswordValid || !user.isVerified) {
+    if (!user || !isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
