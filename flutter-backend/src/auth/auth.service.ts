@@ -185,9 +185,14 @@ export class AuthService {
     // Run compare even if user is unknown to reduce timing side-channels.
     const passwordHash = user?.password ?? DUMMY_PASSWORD_HASH;
     const isPasswordValid = await bcrypt.compare(dto.password, passwordHash);
-
+    if (!user) {
+      throw new UnauthorizedException('Invalid email');
+    }
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid password');
+    }
     if (!user || !isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     const payload: TokenPayload = {
