@@ -21,8 +21,8 @@ async function bootstrap() {
       transform: true,
       // Reject payloads that include properties not defined in DTOs.
       forbidNonWhitelisted: true,
-      // Keep validation errors concise in production responses.
-      disableErrorMessages: process.env.NODE_ENV === 'production',
+      // Return validation details so clients can show actionable form errors.
+      disableErrorMessages: false,
     }),
   );
   app.enableCors({

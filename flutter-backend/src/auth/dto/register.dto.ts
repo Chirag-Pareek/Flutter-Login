@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsString,
   Matches,
-  MinLength,
 } from 'class-validator';
 
 // Payload used by `POST /auth/register`.
@@ -27,11 +26,10 @@ export class RegisterDto {
   @IsEmail()
   email!: string;
 
-  // At least 8 chars plus uppercase/lowercase/number/symbol.
-  @MinLength(8)
-  @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).+$/, {
+  // Minimum 8 chars plus uppercase/lowercase/number/symbol.
+  @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/, {
     message:
-      'Password must contain uppercase, lowercase, number, and special character',
+      'Use a strong password: at least 8 characters with uppercase, lowercase, number, and special character.',
   })
   password!: string;
 }
