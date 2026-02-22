@@ -1,9 +1,33 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  ValidationError,
+  ValidationPipe,
+} from '@nestjs/common';
 
 // Application entry point.
 async function bootstrap() {
+  const collectValidationMessages = (errors: ValidationError[]): string[] => {
+    const messages: string[] = [];
+    const stack = [...errors];
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (!current) continue;
+
+      if (current.constraints) {
+        messages.push(...Object.values(current.constraints));
+      }
+
+      if (current.children?.length) {
+        stack.push(...current.children);
+      }
+    }
+
+    return messages;
+  };
+
   const app = await NestFactory.create(AppModule, {
     // Keep production logs focused while allowing verbose logs in development.
     logger:
@@ -23,6 +47,13 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       // Return validation details so clients can show actionable form errors.
       disableErrorMessages: false,
+      exceptionFactory: (errors: ValidationError[]) => {
+        const [firstMessage] = collectValidationMessages(errors);
+        return new BadRequestException({
+          statusCode: 400,
+          error: firstMessage ?? 'Validation failed',
+        });
+      },
     }),
   );
   app.enableCors({
