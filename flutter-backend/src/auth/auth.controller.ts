@@ -106,12 +106,13 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleCallback(
     @Req() req: GoogleOAuthRequest,
-    @Res() res: Response,
+    @Res({ passthrough: false }) res: Response,
   ): Promise<void> {
-    this.logger.log('Google OAuth callback received');
+    this.logger.log('Google OAuth callback hit');
+    this.logger.debug(`Google OAuth user payload: ${JSON.stringify(req.user)}`);
 
-    if (!req.user?.email) {
-      this.logger.warn('Google OAuth callback missing user/email');
+    if (!req.user) {
+      this.logger.warn('Google OAuth callback missing req.user');
       res.redirect(this.buildErrorRedirect('missing_google_profile'));
       return;
     }
@@ -121,17 +122,20 @@ export class AuthController {
         req.user,
       );
 
-      const successRedirect = this.buildSuccessRedirect(
-        access_token,
-        refresh_token,
-      );
+      this.logger.log(`Google OAuth tokens generated for ${req.user.email}`);
 
-      this.logger.log(`Google OAuth success for email=${req.user.email}`);
-      res.redirect(successRedirect);
+      const params = new URLSearchParams({
+        access: access_token,
+        refresh: refresh_token,
+      });
+      const redirectUrl = `${this.googleSuccessRedirectBase}?${params.toString()}`;
+
+      this.logger.log(`Google OAuth redirecting to ${redirectUrl}`);
+      res.redirect(302, redirectUrl);
       return;
     } catch (error: unknown) {
       this.logger.error(
-        `Google OAuth callback failed for email=${req.user.email}`,
+        `Google OAuth callback failed for ${req.user.email ?? 'unknown user'}`,
         error instanceof Error ? error.stack : undefined,
       );
 
