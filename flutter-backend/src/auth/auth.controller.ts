@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Post,
   Query,
   Req,
@@ -22,7 +23,7 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
 
 type GoogleOAuthRequest = {
-  user: {
+  user?: {
     email: string;
     name?: string | null;
   };
@@ -31,6 +32,12 @@ type GoogleOAuthRequest = {
 // Authentication endpoints for account lifecycle and token management.
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+  private readonly googleSuccessRedirectBase =
+    process.env.MOBILE_GOOGLE_SUCCESS_REDIRECT ?? 'myapp://auth-success';
+  private readonly googleErrorRedirectBase =
+    process.env.MOBILE_GOOGLE_ERROR_REDIRECT ?? 'myapp://auth-error';
+
   constructor(private readonly authService: AuthService) {}
 
   // Returns the authenticated user's email extracted from JWT context.
@@ -97,13 +104,53 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleCallback(@Req() req: GoogleOAuthRequest, @Res() res: Response) {
-    const { access_token, refresh_token } = await this.authService.googleLogin(
-      req.user,
-    );
+  async googleCallback(
+    @Req() req: GoogleOAuthRequest,
+    @Res() res: Response,
+  ): Promise<void> {
+    this.logger.log('Google OAuth callback received');
 
-    const access = encodeURIComponent(access_token);
-    const refresh = encodeURIComponent(refresh_token);
-    res.redirect(`myapp://auth-success?access=${access}&refresh=${refresh}`);
+    if (!req.user?.email) {
+      this.logger.warn('Google OAuth callback missing user/email');
+      res.redirect(this.buildErrorRedirect('missing_google_profile'));
+      return;
+    }
+
+    try {
+      const { access_token, refresh_token } = await this.authService.googleLogin(
+        req.user,
+      );
+
+      const successRedirect = this.buildSuccessRedirect(
+        access_token,
+        refresh_token,
+      );
+
+      this.logger.log(`Google OAuth success for email=${req.user.email}`);
+      res.redirect(successRedirect);
+      return;
+    } catch (error: unknown) {
+      this.logger.error(
+        `Google OAuth callback failed for email=${req.user.email}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      res.redirect(this.buildErrorRedirect('google_login_failed'));
+      return;
+    }
+  }
+
+  private buildSuccessRedirect(accessToken: string, refreshToken: string) {
+    const params = new URLSearchParams({
+      access: accessToken,
+      refresh: refreshToken,
+    });
+
+    return `${this.googleSuccessRedirectBase}?${params.toString()}`;
+  }
+
+  private buildErrorRedirect(reason: string) {
+    const params = new URLSearchParams({ reason });
+    return `${this.googleErrorRedirectBase}?${params.toString()}`;
   }
 }
