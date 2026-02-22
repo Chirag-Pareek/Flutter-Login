@@ -186,13 +186,13 @@ export class AuthService {
     const passwordHash = user?.password ?? DUMMY_PASSWORD_HASH;
     const isPasswordValid = await bcrypt.compare(dto.password, passwordHash);
     if (!user) {
-      throw new UnauthorizedException('Invalid email');
+      throw new UnauthorizedException('Invalid email please register first or check your email');
     }
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password');
+      throw new UnauthorizedException('Invalid password please check your password');
     }
     if (!user || !isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid email or password please check your account details');
     }
 
     const payload: TokenPayload = {
