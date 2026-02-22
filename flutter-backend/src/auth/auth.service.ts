@@ -81,40 +81,25 @@ export class AuthService {
     try {
       const existingUser = await this.prisma.user.findUnique({
         where: { email },
-        select: { id: true, isVerified: true },
+        select: { id: true },
       });
 
-      if (existingUser?.isVerified) {
+      if (existingUser) {
         throw new ConflictException('Email already registered. Please login.');
       }
 
-      const user = existingUser
-        ? await this.prisma.user.update({
-            where: { id: existingUser.id },
-            data: {
-              name: normalizedName,
-              password: hashedPassword,
-              verifyToken: verifyTokenHash,
-              verifyTokenExpiry,
-              isVerified: false,
-              refreshToken: null,
-              resetToken: null,
-              resetTokenExpiry: null,
-            },
-            select: { id: true, name: true, email: true },
-          })
-        : await this.prisma.user.create({
-            data: {
-              name: normalizedName,
-              email,
-              password: hashedPassword,
-              verifyToken: verifyTokenHash,
-              verifyTokenExpiry,
-              isVerified: false,
-              provider: 'email',
-            },
-            select: { id: true, name: true, email: true },
-          });
+      const user = await this.prisma.user.create({
+        data: {
+          name: normalizedName,
+          email,
+          password: hashedPassword,
+          verifyToken: verifyTokenHash,
+          verifyTokenExpiry,
+          isVerified: false,
+          provider: 'email',
+        },
+        select: { id: true, name: true, email: true },
+      });
 
       const verificationEmailSent = await sendVerificationEmail(
         user.email,
