@@ -1,13 +1,24 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsString, MinLength, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 // Payload used by `POST /auth/register`.
 export class RegisterDto {
   @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
+    typeof value === 'string'
+      ? value.trim() === ''
+        ? undefined
+        : value.trim()
+      : value,
   )
+  @IsOptional()
   @IsString()
-  name!: string;
+  name?: string;
 
   // Normalize email before validation and persistence.
   @Transform(({ value }: { value: unknown }) =>

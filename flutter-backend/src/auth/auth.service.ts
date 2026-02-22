@@ -68,6 +68,7 @@ export class AuthService {
   // Registers a new account and sends a verification email.
   async register(dto: RegisterDto) {
     const email = dto.email.trim().toLowerCase();
+    const normalizedName = dto.name?.trim() || null;
     const hashedPassword = await bcrypt.hash(
       dto.password,
       this.bcryptSaltRounds,
@@ -91,7 +92,7 @@ export class AuthService {
         ? await this.prisma.user.update({
             where: { id: existingUser.id },
             data: {
-              name: dto.name,
+              name: normalizedName,
               password: hashedPassword,
               verifyToken: verifyTokenHash,
               verifyTokenExpiry,
@@ -104,7 +105,7 @@ export class AuthService {
           })
         : await this.prisma.user.create({
             data: {
-              name: dto.name,
+              name: normalizedName,
               email,
               password: hashedPassword,
               verifyToken: verifyTokenHash,

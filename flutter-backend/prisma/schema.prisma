@@ -17,7 +17,7 @@ enum AuthProvider {
 // Core application user entity for authentication and authorization.
 model User {
   id           Int     @id @default(autoincrement())
-  name         String
+  name         String?
   email        String  @unique
   password     String?               //optional (for Google users)
   refreshToken String?

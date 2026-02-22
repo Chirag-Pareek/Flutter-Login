@@ -4,6 +4,6 @@ import { UserRole } from './user-role.type';
 export type AuthenticatedUser = {
   id: number;
   email: string;
-  name: string;
+  name: string | null;
   role: UserRole;
 };
