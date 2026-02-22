@@ -79,8 +79,8 @@ export class AuthService {
     const verifyTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     try {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email },
+      const existingUser = await this.prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
         select: { id: true },
       });
 
@@ -167,8 +167,13 @@ export class AuthService {
 
   // Authenticates user credentials and returns fresh token pair.
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email.trim().toLowerCase() },
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email: {
+          equals: dto.email.trim(),
+          mode: 'insensitive',
+        },
+      },
       select: {
         id: true,
         password: true,
@@ -299,8 +304,8 @@ export class AuthService {
   // Requests password reset without leaking whether user exists.
   async requestPasswordReset(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await this.prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,
@@ -434,8 +439,8 @@ export class AuthService {
     const fallbackName = email.split('@')[0] ?? 'Google User';
     const name = profile.name?.trim() || fallbackName;
 
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,
