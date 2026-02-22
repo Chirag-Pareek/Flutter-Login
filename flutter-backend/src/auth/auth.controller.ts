@@ -5,6 +5,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -18,6 +19,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { AuthGuard } from '@nestjs/passport';
+import type { Response } from 'express';
 
 type GoogleOAuthRequest = {
   user: {
@@ -95,7 +97,13 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleCallback(@Req() req: GoogleOAuthRequest) {
-    return this.authService.googleLogin(req.user);
+  async googleCallback(@Req() req: GoogleOAuthRequest, @Res() res: Response) {
+    const { access_token, refresh_token } = await this.authService.googleLogin(
+      req.user,
+    );
+
+    const access = encodeURIComponent(access_token);
+    const refresh = encodeURIComponent(refresh_token);
+    res.redirect(`myapp://auth-success?access=${access}&refresh=${refresh}`);
   }
 }
