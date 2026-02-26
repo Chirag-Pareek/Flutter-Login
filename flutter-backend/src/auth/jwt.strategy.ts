@@ -49,6 +49,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         name: true,
         role: true,
         isVerified: true,
+        provider: true,
+        profilePicture: true,
       },
     });
 
@@ -70,6 +72,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: user.email,
       name: user.name,
       role: user.role,
+      provider: user.provider,      
+    profilePicture: user.profilePicture, 
     };
   }
 }

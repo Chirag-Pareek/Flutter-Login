@@ -7,6 +7,7 @@ import {
   Query,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -21,6 +22,9 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
+import type { AuthenticatedUser } from './types/authenticated-user.type';
+import { ConfigService } from '@nestjs/config/dist/config.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 type GoogleOAuthRequest = {
   user?: {
@@ -38,7 +42,7 @@ export class AuthController {
   private readonly googleErrorRedirectBase =
     process.env.MOBILE_GOOGLE_ERROR_REDIRECT ?? 'myapp://auth-error';
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService, private readonly prisma: PrismaService) {}
 
   // Returns the authenticated user's email extracted from JWT context.
   @UseGuards(JwtAuthGuard)
@@ -157,4 +161,28 @@ export class AuthController {
     const params = new URLSearchParams({ reason });
     return `${this.googleErrorRedirectBase}?${params.toString()}`;
   }
+  // 👇 ADD THIS NEW ENDPOINT
+@Get('profile')
+@UseGuards(JwtAuthGuard)
+async getProfile(@GetUser() user: AuthenticatedUser) {
+  // Fetch full user data from database
+  const fullUser = await this.prisma.user.findUnique({
+    where: { id: user.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      provider: true,
+      profilePicture: true,
+      isVerified: true,
+      createdAt: true,
+    },
+  });
+
+  if (!fullUser) {
+    throw new UnauthorizedException('User not found');
+  }
+
+  return { user: fullUser };
+}
 }

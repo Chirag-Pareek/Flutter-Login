@@ -6,4 +6,6 @@ export type AuthenticatedUser = {
   email: string;
   name: string | null;
   role: UserRole;
+  provider?: string;        
+  profilePicture?: string | null; 
 };
