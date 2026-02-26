@@ -17,7 +17,7 @@ enum AuthProvider {
 // Core application user entity for authentication and authorization.
 model User {
   id           Int     @id @default(autoincrement())
-  name         String?
+  name         String?     //optional
   email        String  @unique
   password     String?               //optional (for Google users)
   refreshToken String?
@@ -30,6 +30,7 @@ model User {
   resetTokenExpiry  DateTime?
 
   provider    AuthProvider @default(email)
+  profilePicture String?  // Google photo URL
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

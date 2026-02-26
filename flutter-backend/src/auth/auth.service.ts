@@ -16,7 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { sendResetEmail, sendVerificationEmail } from './mail.service';
 import { UserRole, isUserRole } from './types/user-role.type';
-
+import { deriveNameFromEmail, deriveNameFromGoogle } from './users-utils';
 type TokenPayload = {
   sub: number;
   role: UserRole;
@@ -27,6 +27,7 @@ type TokenPayload = {
 type GoogleAuthUser = {
   email: string;
   name?: string | null;
+  profilePicture?: string | null;
 };
 
 // Fixed bcrypt hash used for timing-safe login checks when user is not found.
@@ -90,7 +91,7 @@ export class AuthService {
 
       const user = await this.prisma.user.create({
         data: {
-          name: normalizedName,
+          name: deriveNameFromEmail(email),
           email,
           password: hashedPassword,
           verifyToken: verifyTokenHash,
@@ -98,7 +99,7 @@ export class AuthService {
           isVerified: false,
           provider: 'email',
         },
-        select: { id: true, name: true, email: true },
+        select: { id: true, name: true, email: true, provider: true, profilePicture: true },
       });
 
       const verificationEmailSent = await sendVerificationEmail(
@@ -179,6 +180,8 @@ export class AuthService {
         password: true,
         role: true,
         isVerified: true,
+        provider: true,        
+        profilePicture: true,
       },
     });
 
@@ -211,10 +214,21 @@ export class AuthService {
     });
 
     this.logger.debug(`Login success for userId=${user.id}`);
-
+    
+    const userInfo = await this.prisma.user.findUnique({
+    where: { id: user.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      provider: true,        // 👈 For frontend badge logic
+      profilePicture: true,  // 👈 For avatar display
+    },
+  });
     return {
       access_token,
       refresh_token,
+      user: userInfo, 
     };
   }
 
@@ -238,6 +252,8 @@ export class AuthService {
           role: true,
           isVerified: true,
           refreshToken: true,
+          provider: true,        
+          profilePicture: true,
         },
       });
 
@@ -439,10 +455,11 @@ export class AuthService {
   }
 
   // Handles Google OAuth callback user and returns an auth token pair.
+  
   async googleLogin(profile: GoogleAuthUser) {
     const email = profile.email.trim().toLowerCase();
+    const name = profile.name ? deriveNameFromGoogle(profile) : deriveNameFromEmail(email);
     const fallbackName = email.split('@')[0] ?? 'Google User';
-    const name = profile.name?.trim() || fallbackName;
 
     const user = await this.prisma.user.findFirst({
       where: { email: { equals: email, mode: 'insensitive' } },
@@ -452,26 +469,49 @@ export class AuthService {
         name: true,
         role: true,
         isVerified: true,
+        provider: true,        
+        profilePicture: true,
       },
     });
 
     const resolvedUser = user
-      ? user
-      : await this.prisma.user.create({
-          data: {
-            email,
-            name,
-            provider: AuthProvider.google,
-            isVerified: true,
-          },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
-            isVerified: true,
-          },
-        });
+      ? await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          // Only set name if not already present (preserve user edits)
+          name: user.name ?? name,
+          provider: AuthProvider.google,
+          // Update profile picture if Google provides one
+          profilePicture: profile.profilePicture ?? user.profilePicture,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isVerified: true,
+          provider: true,        // 👈 RETURN
+          profilePicture: true,  // 👈 RETURN
+        },
+      })
+    : await this.prisma.user.create({
+        data: {
+          email,
+          name, // 👈 Auto-derived name
+          provider: AuthProvider.google,
+          profilePicture: profile.profilePicture, // 👈 Store Google photo
+          isVerified: true,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isVerified: true,
+          provider: true,        // 👈 RETURN
+          profilePicture: true,  // 👈 RETURN
+        },
+      });
 
     if (!resolvedUser.isVerified) {
       await this.prisma.user.update({
@@ -502,6 +542,8 @@ export class AuthService {
         id: resolvedUser.id,
         email: resolvedUser.email,
         name: resolvedUser.name,
+        provider: resolvedUser.provider,   
+        profilePicture: resolvedUser.profilePicture, 
       },
     };
   }
