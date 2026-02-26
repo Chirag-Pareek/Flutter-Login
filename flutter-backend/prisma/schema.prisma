@@ -20,7 +20,7 @@ model User {
   resetToken        String?
   resetTokenExpiry  DateTime?
   provider          AuthProvider @default(email)
-  profilePicture    String?              // ✅ ADD THIS LINE
+  profilePicture    String? 
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
