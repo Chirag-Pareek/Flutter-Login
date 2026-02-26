@@ -1,42 +1,34 @@
-// Prisma client generation target used by the NestJS app.
 generator client {
   provider = "prisma-client-js"
 }
 
-// PostgreSQL datasource configured via environment variable.
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum AuthProvider {
-  email
-  google
-}
-
-// Core application user entity for authentication and authorization.
 model User {
-  id           Int     @id @default(autoincrement())
-  name         String?     //optional
-  email        String  @unique
-  password     String?               //optional (for Google users)
-  refreshToken String?
-  role         String  @default("user")
-
-  isVerified    Boolean  @default(false)   
-  verifyToken   String?
+  id                Int          @id @default(autoincrement())
+  name              String?
+  email             String       @unique
+  password          String?
+  refreshToken      String?
+  role              String       @default("user")
+  isVerified        Boolean      @default(false)
+  verifyToken       String?
   verifyTokenExpiry DateTime?
   resetToken        String?
   resetTokenExpiry  DateTime?
-
-  provider    AuthProvider @default(email)
-  profilePicture String?  // Google photo URL
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  provider          AuthProvider @default(email)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   @@index([verifyToken])
   @@index([resetToken])
   @@index([role])
+}
+
+enum AuthProvider {
+  email
+  google
 }
