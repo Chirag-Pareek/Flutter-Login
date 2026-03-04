@@ -47,6 +47,16 @@ export class PaymentService {
     const plan = PLANS[planId as PlanId];
     if (!plan) throw new BadRequestException('Invalid plan');
 
+  await this.prisma.subscription.updateMany({
+    where: {
+      userId,
+      status: SubscriptionStatus.active,
+    },
+    data: {
+      status: SubscriptionStatus.expired,
+    },
+  });
+
     await this.prisma.subscription.create({
       data: {
         userId,
