@@ -8,28 +8,56 @@ datasource db {
 }
 
 model User {
-  id                Int          @id @default(autoincrement())
+  id                Int             @id @default(autoincrement())
   name              String?
-  email             String       @unique
+  email             String          @unique
   password          String?
   refreshToken      String?
-  role              String       @default("user")
-  isVerified        Boolean      @default(false)
+  role              String          @default("user")
+  isVerified        Boolean         @default(false)
   verifyToken       String?
   verifyTokenExpiry DateTime?
   resetToken        String?
   resetTokenExpiry  DateTime?
-  provider          AuthProvider @default(email)
+  provider          AuthProvider    @default(email)
   profilePicture    String? 
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Subscription relation
+  subscriptions     Subscription[]
+  
   @@index([verifyToken])
   @@index([resetToken])
   @@index([role])
 }
 
+model Subscription {
+  id          Int                 @id @default(autoincrement())
+  userId      Int
+  user        User                @relation(fields: [userId], references: [id])
+  planId      String              // 'starter' or 'pro'
+  status      SubscriptionStatus  @default(active)
+  messageLimit Int                // 500 or -1 (unlimited)
+  messagesUsed Int                @default(0)
+  startDate   DateTime            @default(now())
+  endDate     DateTime?
+  paymentId   String?             // Razorpay payment ID
+  orderId     String?             // Razorpay order ID
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
 enum AuthProvider {
   email
   google
+}
+
+enum SubscriptionStatus {
+  active
+  expired
+  cancelled
 }
