@@ -8,44 +8,42 @@ datasource db {
 }
 
 model User {
-  id                Int             @id @default(autoincrement())
+  id                Int            @id @default(autoincrement())
   name              String?
-  email             String          @unique
+  email             String         @unique
   password          String?
   refreshToken      String?
-  role              String          @default("user")
-  isVerified        Boolean         @default(false)
+  role              String         @default("user")
+  isVerified        Boolean        @default(false)
   verifyToken       String?
   verifyTokenExpiry DateTime?
   resetToken        String?
   resetTokenExpiry  DateTime?
-  provider          AuthProvider    @default(email)
-  profilePicture    String? 
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  
-  // Subscription relation
+  provider          AuthProvider   @default(email)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  profilePicture    String?
   subscriptions     Subscription[]
-  
+
   @@index([verifyToken])
   @@index([resetToken])
   @@index([role])
 }
 
 model Subscription {
-  id          Int                 @id @default(autoincrement())
-  userId      Int
-  user        User                @relation(fields: [userId], references: [id])
-  planId      String              // 'starter' or 'pro'
-  status      SubscriptionStatus  @default(active)
-  messageLimit Int                // 500 or -1 (unlimited)
+  id           Int                @id @default(autoincrement())
+  userId       Int
+  planId       String
+  status       SubscriptionStatus @default(active)
+  messageLimit Int
   messagesUsed Int                @default(0)
-  startDate   DateTime            @default(now())
-  endDate     DateTime?
-  paymentId   String?             // Razorpay payment ID
-  orderId     String?             // Razorpay order ID
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  startDate    DateTime           @default(now())
+  endDate      DateTime?
+  paymentId    String?
+  orderId      String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  user         User               @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
