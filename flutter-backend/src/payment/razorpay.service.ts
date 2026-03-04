@@ -35,4 +35,7 @@ export class RazorpayService {
     
     return expected === signature;
   }
+  async capturePayment(paymentId: string, amount: number) {
+  return (this as any).razorpay.payments.capture(paymentId, amount, 'INR');
+}
 }

@@ -47,6 +47,8 @@ export class PaymentService {
     const plan = PLANS[planId as PlanId];
     if (!plan) throw new BadRequestException('Invalid plan');
 
+   await this.razorpay.capturePayment(paymentId, plan.amount);
+
   await this.prisma.subscription.updateMany({
     where: {
       userId,
