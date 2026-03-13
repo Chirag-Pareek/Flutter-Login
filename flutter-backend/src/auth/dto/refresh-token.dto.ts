@@ -5,5 +5,5 @@ export class RefreshTokenDto {
   // Raw refresh JWT sent by the client.
   @IsString()
   @IsNotEmpty()
-  refresh_token!: string;
+  refreshToken!: string;
 }
