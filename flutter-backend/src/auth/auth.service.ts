@@ -55,7 +55,7 @@ export class AuthService {
     this.accessTokenExpires =
       this.config.get<SignOptions['expiresIn']>('JWT_ACCESS_EXPIRES') ?? '15m';
     this.refreshTokenExpires =
-      this.config.get<SignOptions['expiresIn']>('JWT_REFRESH_EXPIRES') ?? '7d';
+      this.config.get<SignOptions['expiresIn']>('JWT_REFRESH_EXPIRES') ?? '30d';
 
     const saltRounds = Number(
       this.config.get<string>('BCRYPT_SALT_ROUNDS') ?? '12',
