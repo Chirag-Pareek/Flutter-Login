@@ -221,8 +221,8 @@ export class AuthService {
       id: true,
       email: true,
       name: true,
-      provider: true,        // 👈 For frontend badge logic
-      profilePicture: true,  // 👈 For avatar display
+      provider: true,        //  For frontend badge logic
+      profilePicture: true,  //  For avatar display
     },
   });
     return {
