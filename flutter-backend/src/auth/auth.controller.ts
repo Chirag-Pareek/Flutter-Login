@@ -29,6 +29,18 @@ type GoogleCallbackRequest = Request & {
   };
 };
 
+type GoogleAuthResponse = {
+  access_token: string;
+  refresh_token: string;
+  user: {
+    id: number;
+    email: string;
+    name: string | null;
+    provider: string;
+    profilePicture: string | null;
+  };
+};
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -92,6 +104,31 @@ export class AuthController {
       profilePicture: req.user?.profilePicture,
     });
 
+    const appCallbackUrl = process.env.GOOGLE_APP_CALLBACK_URL?.trim();
+    if (appCallbackUrl) {
+      return res.redirect(302, this.buildGoogleAppRedirect(appCallbackUrl, authResult));
+    }
+
+    res.setHeader('Cache-Control', 'no-store');
     return res.json(authResult);
+  }
+
+  private buildGoogleAppRedirect(
+    callbackUrl: string,
+    authResult: GoogleAuthResponse,
+  ) {
+    const fragment = new URLSearchParams({
+      access_token: authResult.access_token,
+      refresh_token: authResult.refresh_token,
+      user_id: String(authResult.user.id),
+      email: authResult.user.email,
+      name: authResult.user.name ?? '',
+      provider: authResult.user.provider,
+      profile_picture: authResult.user.profilePicture ?? '',
+    }).toString();
+
+    const redirectUrl = new URL(callbackUrl);
+    redirectUrl.hash = fragment;
+    return redirectUrl.toString();
   }
 }
