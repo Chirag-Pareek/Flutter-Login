@@ -306,6 +306,27 @@ export class AuthService {
     }
   }
 
+  async getProfile(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isVerified: true,
+        provider: true,
+        profilePicture: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return { user };
+  }
+
   // Logs user out by clearing persisted refresh token hash.
   async logout(userId: number) {
     await this.prisma.user.updateMany({

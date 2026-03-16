@@ -72,6 +72,12 @@ export class AuthController {
     return this.authService.refreshToken(refreshToken);
   }
 
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  profile(@GetUser('id') userId: number) {
+    return this.authService.getProfile(userId);
+  }
+
   @HttpCode(200)
   @Post('logout')
   @UseGuards(JwtAuthGuard)
