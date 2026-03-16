@@ -117,7 +117,8 @@ export class AuthController {
     callbackUrl: string,
     authResult: GoogleAuthResponse,
   ) {
-    const fragment = new URLSearchParams({
+    const redirectUrl = new URL(callbackUrl);
+    redirectUrl.search = new URLSearchParams({
       access_token: authResult.access_token,
       refresh_token: authResult.refresh_token,
       user_id: String(authResult.user.id),
@@ -126,9 +127,6 @@ export class AuthController {
       provider: authResult.user.provider,
       profile_picture: authResult.user.profilePicture ?? '',
     }).toString();
-
-    const redirectUrl = new URL(callbackUrl);
-    redirectUrl.hash = fragment;
     return redirectUrl.toString();
   }
 }
