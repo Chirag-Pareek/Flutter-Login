@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './jwt.guard';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SignOptions } from 'jsonwebtoken';
 import { RolesGuard } from './roles.guard';
+import { GoogleAuthGuard } from './google-auth.guard';
 import { GoogleStrategy } from './google.strategy';
 
 // Auth module: registration, login, JWT validation, and guard exports.
@@ -46,6 +47,7 @@ import { GoogleStrategy } from './google.strategy';
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
+    GoogleAuthGuard,
     GoogleStrategy,
   ],
   exports: [JwtModule, PassportModule, JwtAuthGuard, RolesGuard],

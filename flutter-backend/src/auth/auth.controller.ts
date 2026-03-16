@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -9,7 +10,6 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorator/get-user.decorator';
@@ -20,6 +20,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { GoogleAuthGuard } from './google-auth.guard';
 
 type GoogleCallbackRequest = Request & {
   user?: {
@@ -64,7 +65,11 @@ export class AuthController {
   @HttpCode(200)
   @Post('refresh')
   refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshToken(dto.refreshToken);
+    const refreshToken = dto.refreshToken ?? dto.refresh_token;
+    if (!refreshToken) {
+      throw new BadRequestException('refreshToken is required');
+    }
+    return this.authService.refreshToken(refreshToken);
   }
 
   @HttpCode(200)
@@ -87,13 +92,13 @@ export class AuthController {
   }
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleAuth() {
     return undefined;
   }
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(
     @Req() req: GoogleCallbackRequest,
     @Res() res: Response,
