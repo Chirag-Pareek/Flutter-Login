@@ -33,10 +33,10 @@ export function deriveNameFromGoogle(profile: any): string {
     }
     
     // Final fallback
-    return 'Google User';
+    return 'Alias';
     
   } catch (error) {
     console.warn('Error deriving name from Google profile:', error);
-    return 'Google User';
+    return 'Alias';
   }
 }

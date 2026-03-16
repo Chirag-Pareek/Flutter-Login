@@ -39,7 +39,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     // 2️⃣ Derive name using utility (first name only, fallback to email prefix)
-    const name = deriveNameFromGoogle(profile);
+    const name = profile.displayName?.trim() || deriveNameFromGoogle(profile);
 
     // 3️⃣ Extract profile picture (prefer high-res)
     const profilePicture = profile.photos?.[0]?.value;

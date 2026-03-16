@@ -16,7 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { sendResetEmail, sendVerificationEmail } from './mail.service';
 import { UserRole, isUserRole } from './types/user-role.type';
-import { deriveNameFromEmail, deriveNameFromGoogle } from './users-utils';
+import { deriveNameFromEmail } from './users-utils';
 type TokenPayload = {
   sub: number;
   role: UserRole;
@@ -479,8 +479,7 @@ export class AuthService {
   
   async googleLogin(profile: GoogleAuthUser) {
     const email = profile.email.trim().toLowerCase();
-    const name = profile.name ? deriveNameFromGoogle(profile) : deriveNameFromEmail(email);
-    const fallbackName = email.split('@')[0] ?? 'Google User';
+    const name = profile.name?.trim() || deriveNameFromEmail(email);
 
     const user = await this.prisma.user.findFirst({
       where: { email: { equals: email, mode: 'insensitive' } },
@@ -499,8 +498,13 @@ export class AuthService {
       ? await this.prisma.user.update({
         where: { id: user.id },
         data: {
-          // Only set name if not already present (preserve user edits)
-          name: user.name ?? name,
+          // Replace only blank/generic placeholder names with the real Google name.
+          name:
+            !user.name ||
+                user.name.trim().length === 0 ||
+                user.name.trim().toLowerCase() == 'google user'
+            ? name
+            : user.name,
           provider: AuthProvider.google,
           // Update profile picture if Google provides one
           profilePicture: profile.profilePicture ?? user.profilePicture,
