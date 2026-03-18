@@ -16,6 +16,9 @@ export class PaymentController {
 
   @Post('verify')
   async verifyPayment(@Request() req, @Body() dto: VerifyPaymentDto) {
+
+    console.log("FULL USER OBJECT:", req.user);
+
     return this.paymentService.verifyPayment(
       req.user.sub,
       dto.planId,
