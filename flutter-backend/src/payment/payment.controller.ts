@@ -11,13 +11,13 @@ export class PaymentController {
 
   @Post('create-order')
   async createOrder(@Request() req, @Body() dto: CreateOrderDto) {
-    return this.paymentService.createOrder(req.user.userId, dto.planId);
+    return this.paymentService.createOrder(req.user.sub, dto.planId);
   }
 
   @Post('verify')
   async verifyPayment(@Request() req, @Body() dto: VerifyPaymentDto) {
     return this.paymentService.verifyPayment(
-      req.user.userId,
+      req.user.sub,
       dto.planId,
       dto.razorpay_order_id,
       dto.razorpay_payment_id,
@@ -27,7 +27,7 @@ export class PaymentController {
 
   @Post('subscription-status')
   async getStatus(@Request() req) {
-    const sub = await this.paymentService.getActiveSubscription(req.user.userId);
+    const sub = await this.paymentService.getActiveSubscription(req.user.sub);
     return { 
       hasSubscription: !!sub,
       plan: sub?.planId || null,
