@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
@@ -37,5 +37,17 @@ export class RazorpayService {
   }
   async capturePayment(paymentId: string, amount: number) {
   return (this as any).razorpay.payments.capture(paymentId, amount, 'INR');
+
+}
+
+async fetchPayment(paymentId: string) {
+  try {
+   
+    const payment = await this.razorpay.payments.fetch(paymentId);
+    return payment;
+  } catch (error) {
+    console.error('Error fetching payment from Razorpay:', error);
+    throw new BadRequestException('Could not verify payment with Razorpay');
+  }
 }
 }

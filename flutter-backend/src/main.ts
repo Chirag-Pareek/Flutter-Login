@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import helmet from 'helmet';
 import {
   BadRequestException,
   ValidationError,
@@ -57,8 +58,31 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: '*',
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://flutter-login-pt20.onrender.com',
+    ],
+    credentials: true,
+
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Authorization'],
   });
+
+  app.use(helmet({
+    contentSecurityPolicy: false,  
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: 'unsafe-none' }, 
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+
+    hidePoweredBy: true,
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+    noSniff: true,
+    xssFilter: true,
+    frameguard: { action: 'deny' },
+  }));
+
   await app.listen(process.env.PORT || 3000);
 }
 
