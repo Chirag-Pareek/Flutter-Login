@@ -70,8 +70,8 @@ export class PaymentService {
       // Verify amount matches plan (convert to paise if needed)
       const expectedAmount = plan.amount; // assuming amount is in paise
       if (paymentDetails.amount !== expectedAmount) {
-        console.warn(`Amount mismatch: expected ${expectedAmount}, got ${paymentDetails.amount}`);
-      
+        console.error(`🚨 Amount mismatch: user=${userId}, expected=${expectedAmount}, got=${paymentDetails.amount}`);
+        throw new BadRequestException('Amount mismatch'); 
       }
     } catch (error) {
       //If API call fails, log but continue (safe fallback)
