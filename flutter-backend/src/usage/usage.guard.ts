@@ -18,7 +18,7 @@ export class UsageGuard implements CanActivate {
     const user = request.user; // Assumes JwtAuthGuard runs first
 
     if (!user?.id) {
-      throw new ForbiddenException('Authentication required');
+      return true;
     }
 
     const result = await this.usageService.checkLimit(user.id);

@@ -21,6 +21,7 @@ import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { GoogleAuthGuard } from './google-auth.guard';
+import { Public } from  '../auth/decorator/public.decorator';
 
 type GoogleCallbackRequest = Request & {
   user?: {
@@ -46,22 +47,23 @@ type GoogleAuthResponse = {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+@Public()
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
-
+@Public()
   @HttpCode(200)
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
-
+@Public()
   @Get('verify')
   verifyEmail(@Query() query: VerifyEmailDto) {
     return this.authService.verifyEmail(query.token);
   }
-
+@Public()
   @HttpCode(200)
   @Post('refresh')
   refresh(@Body() dto: RefreshTokenDto) {
@@ -84,25 +86,25 @@ export class AuthController {
   logout(@GetUser('id') userId: number) {
     return this.authService.logout(userId);
   }
-
+@Public()
   @HttpCode(200)
   @Post('forgot-password')
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.requestPasswordReset(dto.email);
   }
-
+@Public()
   @HttpCode(200)
   @Post('reset-password')
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.token, dto.password);
   }
-
+@Public()
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   googleAuth() {
     return undefined;
   }
-
+@Public()
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(
