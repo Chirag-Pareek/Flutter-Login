@@ -6,7 +6,7 @@ import { RazorpayService } from './razorpay.service';
 
 const PLANS = {
   starter: { amount: 9900, messageLimit: 500 },
-  pro: { amount: 24900, messageLimit: -1 },// -1 = unlimited
+  pro: { amount: 24900, messageLimit: -1 }, // -1 = unlimited
 } as const;
 
 type PlanId = keyof typeof PLANS;
@@ -41,24 +41,23 @@ export class PaymentService {
     paymentId: string,
     signature: string,
   ) {
-    //Verify signature
+    // Verify signature
     const isValid = this.razorpay.verifySignature(orderId, paymentId, signature);
     if (!isValid) throw new BadRequestException('Invalid signature');
   
-    //Check for duplicate payment 
+    // Check for duplicate payment 
     const existingPayment = await this.prisma.subscription.findFirst({
       where: { paymentId },
     });
     if (existingPayment) {
-    
       return { verified: true };
     }
   
-    //Validate plan
+    // Validate plan
     const plan = PLANS[planId as PlanId];
     if (!plan) throw new BadRequestException('Invalid plan');
   
-    //Verify payment status & amount from Razorpay API
+    // Verify payment status & amount from Razorpay API
     try {
       const paymentDetails = await this.razorpay.fetchPayment(paymentId);
       
@@ -70,16 +69,16 @@ export class PaymentService {
       // Verify amount matches plan (convert to paise if needed)
       const expectedAmount = plan.amount; // assuming amount is in paise
       if (paymentDetails.amount !== expectedAmount) {
-        console.error(`🚨 Amount mismatch: user=${userId}, expected=${expectedAmount}, got=${paymentDetails.amount}`);
+        console.error(`Amount mismatch: user=${userId}, expected=${expectedAmount}, got=${paymentDetails.amount}`);
         throw new BadRequestException('Amount mismatch'); 
       }
     } catch (error) {
-      //If API call fails, log but continue (safe fallback)
+      // If API call fails, log but continue (safe fallback)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.warn('Could not fetch payment details from Razorpay:', errorMessage);
     }
   
-    //Verify order belongs to this user
+    // Verify order belongs to this user
     const orderCheck = await this.prisma.subscription.findFirst({
       where: { 
         orderId, 
@@ -90,7 +89,7 @@ export class PaymentService {
       throw new BadRequestException('Order does not belong to this user');
     }
   
-    //Capture payment 
+    // Capture payment 
     await this.razorpay.capturePayment(paymentId, plan.amount);
   
     await this.prisma.subscription.updateMany({
@@ -103,7 +102,7 @@ export class PaymentService {
       },
     });
    
-    //Create new subscription 
+    // Create new subscription 
     await this.prisma.subscription.create({
       data: {
         userId,
@@ -113,6 +112,15 @@ export class PaymentService {
         orderId,
         status: SubscriptionStatus.active,
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    // Update user's plan after successful payment (PART 5 integration)
+    // Normalize planId to uppercase for consistency with UsageService
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        plan: planId.toUpperCase(), // 'starter' -> 'STARTER', 'pro' -> 'PRO'
       },
     });
   

@@ -11,6 +11,8 @@ import { UsageService } from './usage/usage.service';
 import { UsageGuard } from './usage/usage.guard';
 import { AiService } from './ai/ai.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { UsageCronService } from './usage/usage.cron.service';
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     UsersModule,
     PaymentModule,
     PrismaModule,
-
+ ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
@@ -43,6 +45,7 @@ import { PrismaModule } from '../prisma/prisma.module';
       useClass: UsageGuard,
     },
      AiService,
+     UsageCronService,
   ],
    exports: [UsageService , AiService],
 })
