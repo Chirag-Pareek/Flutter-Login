@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  
 }
 
 model User {
@@ -24,6 +24,13 @@ model User {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   profilePicture    String?
+
+  plan            String    @default("BASIC")        
+  dailyUsage      Int         @default(0)            
+  monthlyUsage    Int         @default(0)            
+  lastDailyReset  DateTime?   @default(now())        
+  lastMonthlyReset DateTime?  @default(now())        
+
   subscriptions     Subscription[]
 
   @@index([verifyToken])

@@ -6,7 +6,7 @@ import { RazorpayService } from './razorpay.service';
 
 const PLANS = {
   starter: { amount: 9900, messageLimit: 500 },
-  pro: { amount: 24900, messageLimit: -1 }, // -1 = unlimited
+  pro: { amount: 24900, messageLimit: -1 },// -1 = unlimited
 } as const;
 
 type PlanId = keyof typeof PLANS;
@@ -75,7 +75,8 @@ export class PaymentService {
       }
     } catch (error) {
       //If API call fails, log but continue (safe fallback)
-      console.warn('Could not fetch payment details from Razorpay:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.warn('Could not fetch payment details from Razorpay:', errorMessage);
     }
   
     //Verify order belongs to this user

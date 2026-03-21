@@ -7,6 +7,10 @@ import { PaymentModule } from './payment/payment.module';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { UsageService } from './usage/usage.service';
+import { UsageGuard } from './usage/usage.guard';
+import { AiService } from './ai/ai.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
@@ -15,6 +19,7 @@ import { APP_GUARD } from '@nestjs/core';
     AuthModule,
     UsersModule,
     PaymentModule,
+    PrismaModule,
 
     ThrottlerModule.forRoot([
       {
@@ -32,6 +37,13 @@ import { APP_GUARD } from '@nestjs/core';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    UsageService,  
+    {
+      provide: APP_GUARD,
+      useClass: UsageGuard,
+    },
+     AiService,
   ],
+   exports: [UsageService , AiService],
 })
 export class AppModule {}
