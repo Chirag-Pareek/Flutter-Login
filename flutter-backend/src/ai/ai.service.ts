@@ -1,28 +1,36 @@
 import { Injectable, Logger } from '@nestjs/common';
+import OpenAI from 'openai';
 
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
+  private openai: OpenAI;
 
-  /**
-   * Generate AI response (placeholder — replace with your actual AI logic)
-   */
+  constructor() {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+
   async generate(message: string): Promise<string> {
-    this.logger.log(`Generating AI response for: "${message.substring(0, 50)}..."`);
-    
-    // 🔄 REPLACE THIS WITH YOUR ACTUAL AI LOGIC:
-    // Example: OpenAI call
-    // const response = await fetch('https://api.openai.com/v1/chat/completions', { ... });
-    // return response.choices[0].message.content;
-    
-    // Example: Anthropic call
-    // const response = await fetch('https://api.anthropic.com/v1/messages', { ... });
-    // return response.content[0].text;
-    
-    // Example: Local model / other API
-    // return await this.yourAiProvider.call(message);
-    
-    // 🎯 TEMPORARY: Echo back the message (replace with real AI)
-    return `AI response to: "${message}"`;
+    try {
+      this.logger.log(`AI request: ${message.substring(0, 50)}`);
+
+      const completion = await this.openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'user',
+            content: message,
+          },
+        ],
+      });
+
+      return completion.choices[0].message.content || 'No response';
+
+    } catch (error) {
+      this.logger.error('AI Error', error);
+      return 'Something went wrong';
+    }
   }
 }
