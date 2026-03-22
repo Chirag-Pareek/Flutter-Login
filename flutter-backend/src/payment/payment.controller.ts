@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { PaymentService } from './payment.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -16,9 +16,7 @@ export class PaymentController {
 
   @Post('verify')
   async verifyPayment(@Request() req, @Body() dto: VerifyPaymentDto) {
-
     console.log("FULL USER OBJECT:", req.user);
-
     return this.paymentService.verifyPayment(
       req.user.id,
       dto.planId,
@@ -28,14 +26,9 @@ export class PaymentController {
     );
   }
 
-  @Post('subscription-status')
+
+  @Get('subscription-status')
   async getStatus(@Request() req) {
-    const sub = await this.paymentService.getActiveSubscription(req.user.id);
-    return { 
-      hasSubscription: !!sub,
-      plan: sub?.planId || null,
-      messagesUsed: sub?.messagesUsed || 0,
-      messageLimit: sub?.messageLimit || 10,  // Free limit
-    };
+    return this.paymentService.getSubscriptionStatus(req.user.id);
   }
 }

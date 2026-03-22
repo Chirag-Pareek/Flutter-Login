@@ -138,6 +138,35 @@ export class PaymentService {
     });
   }
 
+  // ✅ NEW METHOD ADDED — nothing above this line was changed
+  async getSubscriptionStatus(userId: number) {
+    const sub = await this.getActiveSubscription(userId);
+
+    if (!sub) {
+      return {
+        plan: 'free',
+        messagesUsed: 0,
+        messageLimit: 20,
+        endDate: null,
+      };
+    }
+
+    const planLimits: Record<string, number> = {
+      free: 20,
+      starter: 2000,
+      pro: -1,
+    };
+
+    const messageLimit = planLimits[sub.planId.toLowerCase()] ?? 20;
+
+    return {
+      plan: sub.planId,
+      messagesUsed: sub.messagesUsed,
+      messageLimit,
+      endDate: sub.endDate,
+    };
+  }
+
   async canSendMessage(userId: number): Promise<boolean> {
     const sub = await this.getActiveSubscription(userId);
     if (!sub) return true;
