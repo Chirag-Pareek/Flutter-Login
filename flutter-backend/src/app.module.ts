@@ -14,6 +14,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UsageCronService } from './usage/usage.cron.service';
 import { JwtAuthGuard } from './auth/jwt.guard';
+import { AiController } from './ai/ai.controller';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { JwtAuthGuard } from './auth/jwt.guard';
     ]),
   ],
 
-  controllers: [AppController],
+  controllers: [AppController , AiController],
 
   providers: [
     AppService,
