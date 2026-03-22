@@ -5,7 +5,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { RazorpayService } from './razorpay.service';
 
 const PLANS = {
-  starter: { amount: 9900, messageLimit: 500 },
+  starter: { amount: 9900, messageLimit: 2000 },
   pro: { amount: 24900, messageLimit: -1 }, // -1 = unlimited
 } as const;
 
