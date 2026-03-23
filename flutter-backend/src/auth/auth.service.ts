@@ -194,9 +194,9 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid password please check your password');
     }
-    if (!user || !isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password please check your account details');
-    }
+    if (!user.isVerified) {
+  throw new UnauthorizedException('Please verify your email before logging in.');
+}
 
     const payload: TokenPayload = {
       sub: user.id,

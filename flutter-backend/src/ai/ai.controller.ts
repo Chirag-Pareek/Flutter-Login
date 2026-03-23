@@ -20,29 +20,28 @@ export class AiController {
   ) {}
 
   @Post('chat')
-  @UseGuards(JwtAuthGuard, UsageGuard)
-  @HttpCode(200)
-  async chat(@Request() req, @Body() dto: { message: string }) {
-    // UsageGuard has already verified limits via canActivate().
-    // If execution reaches here, the user is authorized and within limits.
+@UseGuards(JwtAuthGuard, UsageGuard)
+@HttpCode(200)
+async chat(
+  @Request() req,
+  @Body() dto: { message: string; personaStyle?: string; tone?: string; language?: string },
+) {
+  const response = await this.aiService.generate(
+    dto.message,
+    dto.personaStyle,
+    dto.tone,
+    dto.language,
+  );
 
-    // Execute your existing AI generation logic.
-    const response = await this.aiService.generate(dto.message);
+  await this.usageService.incrementUsage(req.user.id);
+  const usageStats = await this.usageService.getUsageStats(req.user.id);
 
-    // Increment usage counters ONLY after successful generation.
-    // This ensures failed requests or errors do not consume the user's quota.
-    await this.usageService.incrementUsage(req.user.id);
-
-    // Return the response along with current usage statistics.
-    // This allows the frontend to display progress (e.g., "15/20 messages used").
-    const usageStats = await this.usageService.getUsageStats(req.user.id);
-
-    return { 
-      success: true, 
-      response,
-      usage: usageStats,
-    };
-  }
+  return {
+    success: true,
+    response,
+    usage: usageStats,
+  };
+}
 
   // Optional endpoint for the frontend to fetch current usage stats
   // without consuming a request quota.
