@@ -96,7 +96,7 @@ export class AuthService {
           password: hashedPassword,
           verifyToken: verifyTokenHash,
           verifyTokenExpiry,
-          isVerified: false,
+          isVerified: true,
           provider: 'email',
         },
         select: { id: true, name: true, email: true, provider: true, profilePicture: true },
@@ -193,9 +193,9 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid password please check your password');
     }
-    if (!user.isVerified) {
-  throw new UnauthorizedException('Please verify your email before logging in.');
-}
+    // if (!user.isVerified) {
+    //   throw new UnauthorizedException('Please verify your email before logging in.');
+    // }
 
     const payload: TokenPayload = {
       sub: user.id,
