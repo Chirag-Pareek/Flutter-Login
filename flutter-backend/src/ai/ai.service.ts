@@ -1,14 +1,14 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
-import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  private openai: OpenAI;
+  private groq: Groq;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    this.groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
     });
   }
 
@@ -41,10 +41,10 @@ Keep replies short, conversational, and fully in character.
 Do not break character, do not explain your role, do not add disclaimers.`;
 
     try {
-      this.logger.log(`AI request — persona:${personaKey} tone:${replyTone} lang:${replyLanguage} msg:${message.substring(0, 50)}`);
+      this.logger.log(`AI request — persona:${personaKey} tone:${replyTone} lang:${replyLanguage}`);
 
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+      const completion = await this.groq.chat.completions.create({
+        model: 'llama-3.1-8b-instant',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message },
