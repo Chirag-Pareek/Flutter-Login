@@ -41,7 +41,8 @@ import { AiController } from './ai/ai.controller';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    UsageService,  
+    UsageService,
+    UsageGuard,  
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
