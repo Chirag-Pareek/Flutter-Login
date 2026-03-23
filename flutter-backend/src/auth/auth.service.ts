@@ -107,7 +107,6 @@ export class AuthService {
         verificationToken,
       );
 
-      console.log('TOKEN:', verificationToken);
 
       if (!verificationEmailSent) {
         this.logger.warn(`Verification email failed for ${user.email}`);

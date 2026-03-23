@@ -58,11 +58,9 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://flutter-login-pt20.onrender.com',
-    ],
+   origin: process.env.NODE_ENV === 'production'
+    ? ['https://flutter-login-pt20.onrender.com']
+    : ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true,
 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

@@ -11,13 +11,14 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { UserRole } from '../auth/types/user-role.type';
 
-
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // GET /users: returns all users (JWT required).
+  // GET /users: admin only
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get()
   getUsers() {
     return this.usersService.getUsers();
@@ -31,7 +32,9 @@ export class UsersController {
     return 'Only admin can see this';
   }
 
-  // GET /users/:id: returns one user by numeric id.
+  // GET /users/:id: admin only
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get(':id')
   getUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.getUserById(id);

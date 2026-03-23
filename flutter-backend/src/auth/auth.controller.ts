@@ -22,6 +22,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { Public } from  '../auth/decorator/public.decorator';
+import { Throttle } from '@nestjs/throttler';
 
 type GoogleCallbackRequest = Request & {
   user?: {
@@ -48,16 +49,20 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
 @Public()
-  @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
-  }
+@Throttle({ default: { limit: 3, ttl: 60000 } })
+@Post('register')
+register(@Body() dto: RegisterDto) {
+  return this.authService.register(dto);
+}
+
 @Public()
-  @HttpCode(200)
-  @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
-  }
+@Throttle({ default: { limit: 5, ttl: 60000 } })
+@HttpCode(200)
+@Post('login')
+login(@Body() dto: LoginDto) {
+  return this.authService.login(dto);
+}
+
 @Public()
   @Get('verify')
   verifyEmail(@Query() query: VerifyEmailDto) {
