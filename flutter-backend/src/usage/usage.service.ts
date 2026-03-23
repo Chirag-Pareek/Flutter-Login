@@ -1,5 +1,6 @@
 import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
-import  { PrismaService } from "../../prisma/prisma.service";
+import { PrismaService } from "../../prisma/prisma.service";
+import { SubscriptionStatus } from '@prisma/client';
 
 @Injectable()
 export class UsageService {
@@ -112,6 +113,17 @@ export class UsageService {
       data: {
         dailyUsage: { increment: 1 },
         monthlyUsage: { increment: 1 },
+      },
+    });
+
+    // Also sync the active subscription's messagesUsed for UI dashboards
+    await this.prisma.subscription.updateMany({
+      where: { 
+        userId,
+        status: SubscriptionStatus.active,
+      },
+      data: {
+        messagesUsed: { increment: 1 },
       },
     });
   }
